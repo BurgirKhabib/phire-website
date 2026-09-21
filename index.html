@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PHIRE — Preserving What Time Forgot</title>
+
+<meta name="description"
+content="PHIRE connects generations through traditional crafts, stories, learning and experiences.">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap');
+
+:root{
+--cream:#f3eee5;
+--paper:#e9e1d3;
+--ink:#171614;
+--muted:#716b61;
+--red:#8f2d25;
+--gold:#b89455;
+--dark:#11100f;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html{
+scroll-behavior:smooth;
+}
+
+body{
+background:var(--cream);
+color:var(--ink);
+font-family:"DM Sans",sans-serif;
+overflow-x:hidden;
+}
+
+/* =========================
+LOADING SCREEN
+========================= */
+
+#loader{
+position:fixed;
+inset:0;
+background:#11100f;
+color:#f3eee5;
+z-index:9999;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+transition:opacity 1s ease, visibility 1s ease;
+}
+
+#loader.hide{
+opacity:0;
+visibility:hidden;
+}
+
+.loader-logo{
+font-family:"Playfair Display",serif;
+font-size:clamp(60px,12vw,140px);
+letter-spacing:.15em;
+animation:loaderPulse 2s infinite;
+}
+
+.loader-line{
+width:140px;
+height:1px;
+background:#777;
+margin-top:25px;
+position:relative;
+overflow:hidden;
+}
+
+.loader-line:after{
+content:"";
+position:absolute;
+height:100%;
+width:40%;
+background:#fff;
+animation:loading 1.3s infinite;
+}
+
+@keyframes loaderPulse{
+50%{opacity:.45;}
+}
+
+@keyframes loading{
+from{left:-50%;}
+to{left:110%;}
+}
+
+/* =========================
+NAVIGATION
+========================= */
+
+nav{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:82px;
+padding:0 6vw;
+display:flex;
+align-items:center;
+justify-content:space-between;
+z-index:1000;
+mix-blend-mode:difference;
+color:white;
+}
+
+.logo{
+font-family:"Playfair Display",serif;
+font-size:27px;
+letter-spacing:.18em;
+font-weight:600;
+}
+
+.nav-links{
+display:flex;
+gap:35px;
+list-style:none;
+}
+
+.nav-links a{
+color:white;
+text-decoration:none;
+font-size:12px;
+letter-spacing:.14em;
+text-transform:uppercase;
+position:relative;
+}
+
+.nav-links a:after{
+content:"";
+position:absolute;
+left:0;
+bottom:-7px;
+width:0;
+height:1px;
+background:white;
+transition:.4s;
+}
+
+.nav-links a:hover:after{
+width:100%;
+}
+
+.menu{
+display:none;
+font-size:25px;
+}
+
+/* =========================
+HERO
+========================= */
+
+.hero{
+height:100vh;
+min-height:700px;
+position:relative;
+overflow:hidden;
+background:
+radial-gradient(circle at 70% 35%,rgba(143,45,37,.28),transparent 28%),
+radial-gradient(circle at 30% 70%,rgba(184,148,85,.15),transparent 30%),
+#121110;
+color:#f3eee5;
+}
+
+#three-container{
+position:absolute;
+inset:0;
+z-index:1;
+}
+
+.hero-overlay{
+position:absolute;
+inset:0;
+z-index:2;
+pointer-events:none;
+background:
+radial-gradient(circle at center,transparent 15%,rgba(0,0,0,.48) 100%);
+}
+
+.hero-content{
+position:relative;
+z-index:4;
+height:100%;
+display:flex;
+flex-direction:column;
+justify-content:center;
+padding:0 8vw;
+pointer-events:none;
+}
+
+.eyebrow{
+font-size:11px;
+letter-spacing:.3em;
+text-transform:uppercase;
+color:#bba98e;
+margin-bottom:25px;
+opacity:0;
+transform:translateY(25px);
+animation:heroIn 1s .7s forwards;
+}
+
+.hero h1{
+font-family:"Playfair Display",serif;
+font-size:clamp(70px,13vw,190px);
+line-height:.78;
+font-weight:500;
+letter-spacing:-.045em;
+max-width:900px;
+opacity:0;
+transform:translateY(50px);
+animation:heroIn 1.2s .9s forwards;
+}
+
+.hero h1 span{
+display:block;
+color:transparent;
+-webkit-text-stroke:1px rgba(243,238,229,.8);
+}
+
+.hero-description{
+margin-top:45px;
+max-width:450px;
+color:#bbb4aa;
+line-height:1.7;
+font-size:15px;
+opacity:0;
+transform:translateY(25px);
+animation:heroIn 1s 1.3s forwards;
+}
+
+.hero-button{
+margin-top:35px;
+display:inline-flex;
+width:max-content;
+padding:15px 25px;
+border:1px solid rgba(255,255,255,.35);
+color:white;
+text-decoration:none;
+font-size:11px;
+letter-spacing:.18em;
+text-transform:uppercase;
+pointer-events:auto;
+transition:.4s;
+opacity:0;
+animation:heroIn 1s 1.5s forwards;
+}
+
+.hero-button:hover{
+background:white;
+color:#111;
+}
+
+.scroll{
+position:absolute;
+z-index:5;
+bottom:35px;
+right:6vw;
+writing-mode:vertical-rl;
+font-size:10px;
+letter-spacing:.25em;
+color:#aaa;
+}
+
+@keyframes heroIn{
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+/* =========================
+GENERAL
+========================= */
+
+section{
+position:relative;
+padding:130px 8vw;
+}
+
+.section-number{
+font-size:11px;
+letter-spacing:.25em;
+color:var(--red);
+margin-bottom:25px;
+}
+
+.section-title{
+font-family:"Playfair Display",serif;
+font-size:clamp(42px,6vw,85px);
+font-weight:500;
+line-height:1;
+letter-spacing:-.035em;
+}
+
+.section-intro{
+max-width:570px;
+margin-top:30px;
+color:var(--muted);
+line-height:1.8;
+font-size:16px;
+}
+
+/* =========================
+MANIFESTO
+========================= */
+
+.manifesto{
+min-height:90vh;
+display:flex;
+align-items:center;
+background:var(--cream);
+}
+
+.manifesto-inner{
+max-width:1100px;
+}
+
+.manifesto-big{
+margin-top:55px;
+font-family:"Playfair Display",serif;
+font-size:clamp(40px,7vw,100px);
+line-height:.95;
+}
+
+.manifesto-big span{
+color:var(--red);
+}
+
+.word{
+display:inline-block;
+opacity:0;
+transform:translateY(50px);
+transition:1s cubic-bezier(.2,.8,.2,1);
+}
+
+.word.show{
+opacity:1;
+transform:translateY(0);
+}
+
+/* =========================
+PILLARS
+========================= */
+
+.pillars{
+background:#181614;
+color:#eee7dc;
+}
+
+.pillar-grid{
+margin-top:80px;
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:1px;
+background:#44403a;
+}
+
+.pillar{
+min-height:330px;
+padding:35px;
+background:#181614;
+position:relative;
+overflow:hidden;
+transition:.6s;
+}
+
+.pillar:hover{
+background:#241f1b;
+transform:translateY(-8px);
+}
+
+.pillar-number{
+color:#91897d;
+font-size:12px;
+}
+
+.pillar h3{
+font-family:"Playfair Display",serif;
+font-size:27px;
+margin-top:100px;
+}
+
+.pillar p{
+margin-top:18px;
+color:#9f988e;
+line-height:1.6;
+font-size:13px;
+}
+
+/* =========================
+CREATOR
+========================= */
+
+.creator{
+background:#ddd4c5;
+}
+
+.creator-layout{
+margin-top:80px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:80px;
+align-items:center;
+}
+
+.creator-photo{
+height:620px;
+position:relative;
+overflow:hidden;
+background:
+radial-gradient(circle at 50% 35%,#d4c2a4,transparent 18%),
+linear-gradient(145deg,#8b6a49,#3d3027);
+}
+
+.creator-photo:before{
+content:"";
+position:absolute;
+inset:10%;
+border:1px solid rgba(255,255,255,.25);
+}
+
+.creator-symbol{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+font-family:"Playfair Display",serif;
+font-size:150px;
+color:rgba(255,255,255,.18);
+}
+
+.creator-caption{
+position:absolute;
+left:35px;
+bottom:35px;
+color:white;
+font-size:12px;
+letter-spacing:.12em;
+text-transform:uppercase;
+}
+
+.quote{
+font-family:"Playfair Display",serif;
+font-size:clamp(32px,4vw,58px);
+line-height:1.05;
+}
+
+.creator-text p{
+margin-top:35px;
+color:#5f594f;
+line-height:1.8;
+}
+
+.creator-line{
+margin-top:40px;
+height:1px;
+background:#a69b89;
+}
+
+/* =========================
+PRODUCTS
+========================= */
+
+.products{
+background:#f7f3ec;
+}
+
+.product-grid{
+margin-top:70px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.product-card{
+min-height:420px;
+background:white;
+position:relative;
+padding:25px;
+overflow:hidden;
+transition:.7s cubic-bezier(.2,.8,.2,1);
+}
+
+.product-card:hover{
+transform:translateY(-12px) rotateX(2deg) rotateY(-2deg);
+box-shadow:0 30px 70px rgba(0,0,0,.13);
+}
+
+.product-art{
+height:270px;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#ebe4d8;
+position:relative;
+overflow:hidden;
+}
+
+.product-art:after{
+content:"";
+position:absolute;
+width:150px;
+height:150px;
+border-radius:50%;
+background:rgba(143,45,37,.12);
+filter:blur(15px);
+}
+
+.art-object{
+width:130px;
+height:130px;
+border:2px solid #7b6751;
+transform:rotate(45deg);
+z-index:1;
+animation:floatObject 5s ease-in-out infinite;
+}
+
+.product-card:nth-child(2) .art-object{
+border-radius:50%;
+transform:rotate(0);
+}
+
+.product-card:nth-child(3) .art-object{
+transform:rotate(12deg);
+border-color:var(--red);
+}
+
+@keyframes floatObject{
+0%,100%{transform:translateY(0) rotate(45deg);}
+50%{transform:translateY(-15px) rotate(52deg);}
+}
+
+.product-info{
+padding-top:25px;
+display:flex;
+justify-content:space-between;
+gap:20px;
+}
+
+.product-info h3{
+font-family:"Playfair Display",serif;
+font-size:24px;
+}
+
+.product-info p{
+margin-top:8px;
+color:#81796e;
+font-size:12px;
+line-height:1.5;
+}
+
+.price{
+font-size:12px;
+white-space:nowrap;
+}
+
+/* =========================
+STORIES
+========================= */
+
+.stories{
+background:#151413;
+color:#eee7dc;
+overflow:hidden;
+}
+
+.story-track{
+margin-top:80px;
+display:flex;
+gap:25px;
+overflow-x:auto;
+padding-bottom:25px;
+scrollbar-width:none;
+}
+
+.story-track::-webkit-scrollbar{
+display:none;
+}
+
+.story{
+min-width:330px;
+height:430px;
+background:#26231f;
+position:relative;
+overflow:hidden;
+flex-shrink:0;
+transition:.6s;
+}
+
+.story:hover{
+transform:scale(.97);
+}
+
+.story-image{
+position:absolute;
+inset:0;
+background:
+radial-gradient(circle at 55% 35%,rgba(184,148,85,.45),transparent 15%),
+linear-gradient(145deg,#534338,#171513);
+}
+
+.story:nth-child(2) .story-image{
+background:
+radial-gradient(circle at 40% 45%,rgba(143,45,37,.6),transparent 20%),
+linear-gradient(145deg,#473029,#161313);
+}
+
+.story:nth-child(3) .story-image{
+background:
+radial-gradient(circle at 65% 35%,rgba(204,188,154,.4),transparent 15%),
+linear-gradient(145deg,#534c3d,#151413);
+}
+
+.story-content{
+position:absolute;
+inset:auto 25px 25px;
+}
+
+.story-tag{
+font-size:9px;
+letter-spacing:.2em;
+text-transform:uppercase;
+color:#c1ad8d;
+}
+
+.story h3{
+font-family:"Playfair Display",serif;
+font-size:30px;
+margin-top:10px;
+}
+
+.free{
+margin-top:15px;
+color:#aaa299;
+font-size:12px;
+}
+
+/* =========================
+VOICE CARD
+========================= */
+
+.voice{
+background:#8f2d25;
+color:#f8f1e7;
+overflow:hidden;
+}
+
+.voice:before{
+content:"PHIRE";
+position:absolute;
+font-family:"Playfair Display",serif;
+font-size:35vw;
+opacity:.035;
+right:-5vw;
+top:5%;
+}
+
+.voice-layout{
+position:relative;
+z-index:1;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:100px;
+align-items:center;
+}
+
+.voice h2{
+font-family:"Playfair Display",serif;
+font-size:clamp(45px,6vw,85px);
+line-height:.95;
+}
+
+.voice p{
+margin-top:30px;
+max-width:500px;
+color:#e0cfc2;
+line-height:1.8;
+}
+
+.voice-card{
+width:330px;
+height:460px;
+background:#eee5d7;
+color:#171614;
+padding:30px;
+margin:auto;
+transform:rotate(4deg);
+box-shadow:25px 30px 70px rgba(0,0,0,.3);
+transition:.7s;
+}
+
+.voice-card:hover{
+transform:rotate(0deg) translateY(-15px);
+}
+
+.voice-card small{
+letter-spacing:.2em;
+}
+
+.voice-card h3{
+font-family:"Playfair Display",serif;
+font-size:45px;
+margin-top:100px;
+}
+
+.voice-card .wave{
+margin-top:30px;
+display:flex;
+align-items:center;
+gap:4px;
+height:50px;
+}
+
+.wave span{
+width:3px;
+background:#8f2d25;
+animation:wave 1s infinite alternate ease-in-out;
+}
+
+.wave span:nth-child(2){height:20px;animation-delay:.1s}
+.wave span:nth-child(3){height:40px;animation-delay:.2s}
+.wave span:nth-child(4){height:25px;animation-delay:.3s}
+.wave span:nth-child(5){height:45px;animation-delay:.4s}
+.wave span:nth-child(6){height:30px;animation-delay:.5s}
+.wave span:nth-child(7){height:50px;animation-delay:.6s}
+.wave span:nth-child(8){height:30px;animation-delay:.7s}
+.wave span:nth-child(9){height:45px;animation-delay:.8s}
+
+@keyframes wave{
+to{transform:scaleY(.35);}
+}
+
+/* =========================
+WEBSITE CTA
+========================= */
+
+.cta{
+background:#eee7db;
+min-height:70vh;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+}
+
+.cta h2{
+font-family:"Playfair Display",serif;
+font-size:clamp(50px,9vw,130px);
+line-height:.85;
+}
+
+.cta p{
+max-width:550px;
+margin:35px auto;
+color:#777066;
+line-height:1.7;
+}
+
+.cta-button{
+display:inline-block;
+padding:18px 35px;
+background:#171614;
+color:white;
+text-decoration:none;
+font-size:11px;
+letter-spacing:.2em;
+text-transform:uppercase;
+transition:.4s;
+}
+
+.cta-button:hover{
+background:var(--red);
+transform:translateY(-4px);
+}
+
+/* =========================
+FOOTER
+========================= */
+
+footer{
+background:#11100f;
+color:#aaa298;
+padding:50px 8vw;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+footer strong{
+color:#f1e9dd;
+font-family:"Playfair Display",serif;
+font-size:25px;
+letter-spacing:.15em;
+}
+
+footer p{
+font-size:11px;
+}
+
+/* =========================
+REVEAL ANIMATION
+========================= */
+
+.reveal{
+opacity:0;
+transform:translateY(60px);
+transition:1s cubic-bezier(.2,.8,.2,1);
+}
+
+.reveal.visible{
+opacity:1;
+transform:translateY(0);
+}
+
+/* =========================
+MOBILE
+========================= */
+
+@media(max-width:900px){
+
+.nav-links{
+display:none;
+}
+
+.menu{
+display:block;
+}
+
+section{
+padding:90px 6vw;
+}
+
+.hero-content{
+padding:0 7vw;
+}
+
+.hero h1{
+font-size:22vw;
+}
+
+.pillar-grid{
+grid-template-columns:1fr 1fr;
+}
+
+.creator-layout,
+.voice-layout{
+grid-template-columns:1fr;
+gap:50px;
+}
+
+.creator-photo{
+height:500px;
+}
+
+.product-grid{
+grid-template-columns:1fr;
+}
+
+.voice-card{
+width:280px;
+height:400px;
+}
+
+footer{
+flex-direction:column;
+gap:20px;
+text-align:center;
+}
+}
+
+@media(max-width:550px){
+
+.pillar-grid{
+grid-template-columns:1fr;
+}
+
+.pillar{
+min-height:250px;
+}
+
+.pillar h3{
+margin-top:50px;
+}
+
+.story{
+min-width:280px;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOADER -->
+
+<div id="loader">
+<div class="loader-logo">PHIRE</div>
+<div class="loader-line"></div>
+</div>
+
+<!-- NAV -->
+
+<nav>
+
+<div class="logo">PHIRE</div>
+
+<ul class="nav-links">
+<li><a href="#story">Our Story</a></li>
+<li><a href="#creators">Creators</a></li>
+<li><a href="#products">Explore</a></li>
+<li><a href="#stories">Stories</a></li>
+<li><a href="#voice">Voice Eid</a></li>
+</ul>
+
+<div class="menu">☰</div>
+
+</nav>
+
+<!-- HERO -->
+
+<header class="hero">
+
+<div id="three-container"></div>
+
+<div class="hero-overlay"></div>
+
+<div class="hero-content">
+
+<div class="eyebrow">
+A living archive of Bangladesh
+</div>
+
+<h1>
+PHI<span>RE</span>
+</h1>
+
+<p class="hero-description">
+Traditional skills. Human stories. Childhood memories.
+PHIRE connects generations by turning what time forgets
+into something we can experience again.
+</p>
+
+<a href="#story" class="hero-button">
+Enter PHIRE ↓
+</a>
+
+</div>
+
+<div class="scroll">
+SCROLL TO REMEMBER
+</div>
+
+</header>
+
+
+<!-- MANIFESTO -->
+
+<section class="manifesto" id="story">
+
+<div class="manifesto-inner">
+
+<div class="section-number">01 — WHY PHIRE</div>
+
+<div class="section-title reveal">
+Some things<br>
+disappear quietly.
+</div>
+
+<div class="manifesto-big">
+
+<div>
+<span class="word">A</span>
+<span class="word">skill.</span>
+</div>
+
+<div>
+<span class="word">A</span>
+<span class="word">story.</span>
+</div>
+
+<div>
+<span class="word">A</span>
+<span class="word">memory.</span>
+</div>
+
+</div>
+
+<p class="section-intro reveal">
+PHIRE exists to preserve the knowledge, creativity and
+memories carried by people and traditions — while creating
+meaningful ways for those stories to create value.
+</p>
+
+</div>
+
+</section>
+
+
+<!-- PILLARS -->
+
+<section class="pillars">
+
+<div class="section-number">02 — THE IDEA</div>
+
+<div class="section-title reveal">
+More than<br>
+a marketplace.
+</div>
+
+<div class="pillar-grid">
+
+<div class="pillar reveal">
+<div class="pillar-number">01</div>
+<h3>Product</h3>
+<p>
+Traditional crafts and thoughtfully designed
+nostalgia products.
+</p>
+</div>
+
+<div class="pillar reveal">
+<div class="pillar-number">02</div>
+<h3>Story</h3>
+<p>
+Real stories and memories connected to
+the people behind the traditions.
+</p>
+</div>
+
+<div class="pillar reveal">
+<div class="pillar-number">03</div>
+<h3>Learning</h3>
+<p>
+Free videos where creators share skills
+without a subscription or paywall.
+</p>
+</div>
+
+<div class="pillar reveal">
+<div class="pillar-number">04</div>
+<h3>Culture</h3>
+<p>
+Traditional games, crafts, food and
+everyday heritage.
+</p>
+</div>
+
+<div class="pillar reveal">
+<div class="pillar-number">05</div>
+<h3>Experience</h3>
+<p>
+Memory boxes, workshops and products
+designed to create emotional connection.
+</p>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- CREATOR -->
+
+<section class="creator" id="creators">
+
+<div class="section-number">03 — THE PEOPLE</div>
+
+<div class="section-title reveal">
+The hands<br>
+behind the memory.
+</div>
+
+<div class="creator-layout">
+
+<div class="creator-photo reveal">
+
+<div class="creator-symbol">
+✦
+</div>
+
+<div class="creator-caption">
+Creator stories — PHIRE
+</div>
+
+</div>
+
+<div class="creator-text reveal">
+
+<div class="quote">
+“The skill already belongs to her.
+PHIRE creates a platform for it
+to create value.”
+</div>
+
+<p>
+PHIRE works with elderly creators and traditional
+craftspeople to document skills, share stories and
+create respectful earning opportunities.
+</p>
+
+<div class="creator-line"></div>
+
+<p>
+Each creator can have a profile, story and optional
+support box connected to their content.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PRODUCTS -->
+
+<section class="products" id="products">
+
+<div class="section-number">04 — EXPLORE</div>
+
+<div class="section-title reveal">
+Things worth<br>
+remembering.
+</div>
+
+<div class="product-grid">
+
+<div class="product-card reveal">
+
+<div class="product-art">
+<div class="art-object"></div>
+</div>
+
+<div class="product-info">
+
+<div>
+<h3>Heritage Crafts</h3>
+<p>
+Handmade pieces carrying
+traditional techniques.
+</p>
+</div>
+
+<div class="price">
+৳150+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="product-card reveal">
+
+<div class="product-art">
+<div class="art-object"></div>
+</div>
+
+<div class="product-info">
+
+<div>
+<h3>Memory Box</h3>
+<p>
+A curated collection of
+objects, stories and activities.
+</p>
+</div>
+
+<div class="price">
+৳1,000+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="product-card reveal">
+
+<div class="product-art">
+<div class="art-object"></div>
+</div>
+
+<div class="product-info">
+
+<div>
+<h3>Voice Eid Card</h3>
+<p>
+A physical card carrying
+a personal recorded message.
+</p>
+</div>
+
+<div class="price">
+৳250+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- STORIES -->
+
+<section class="stories" id="stories">
+
+<div class="section-number">05 — PHIRE STORIES</div>
+
+<div class="section-title reveal">
+Knowledge<br>
+shouldn't always<br>
+sit behind a paywall.
+</div>
+
+<div class="story-track">
+
+<div class="story">
+
+<div class="story-image"></div>
+
+<div class="story-content">
+
+<div class="story-tag">FREE — 01</div>
+
+<h3>
+Palm Leaf<br>
+Craft
+</h3>
+
+<div class="free">
+Watch the creator teach the technique.
+</div>
+
+</div>
+
+</div>
+
+
+<div class="story">
+
+<div class="story-image"></div>
+
+<div class="story-content">
+
+<div class="story-tag">FREE — 02</div>
+
+<h3>
+A Game<br>
+We Forgot
+</h3>
+
+<div class="free">
+A childhood tradition, remembered.
+</div>
+
+</div>
+
+</div>
+
+
+<div class="story">
+
+<div class="story-image"></div>
+
+<div class="story-content">
+
+<div class="story-tag">FREE — 03</div>
+
+<h3>
+Stories<br>
+From Home
+</h3>
+
+<div class="free">
+Memories passed from one generation
+to another.
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- VOICE EID CARD -->
+
+<section class="voice" id="voice">
+
+<div class="voice-layout">
+
+<div class="reveal">
+
+<div class="section-number" style="color:#e8c9a9">
+06 — SIGNATURE PRODUCT
+</div>
+
+<h2>
+Some messages<br>
+should be heard.
+</h2>
+
+<p>
+Voice Eid Card turns a traditional greeting card
+into a personal memory — combining a physical
+keepsake with a recorded voice message.
+</p>
+
+</div>
+
+
+<div class="voice-card reveal">
+
+<small>PHIRE — VOICE EID</small>
+
+<h3>
+Eid<br>
+Mubarak.
+</h3>
+
+<div class="wave">
+
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+<span></span>
+
+</div>
+
+<p style="font-size:11px;margin-top:30px;color:#777;">
+A voice message preserved inside
+something you can hold.
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- CTA -->
+
+<section class="cta">
+
+<div>
+
+<div class="section-number">
+07 — THE FUTURE
+</div>
+
+<h2 class="reveal">
+Keep it<br>
+alive.
+</h2>
+
+<p class="reveal">
+PHIRE begins with Bangladesh — its crafts,
+stories, food, games and people — and grows
+into a digital space where heritage can continue
+to be experienced by future generations.
+</p>
+
+<a href="#top" class="cta-button">
+Begin the journey
+</a>
+
+</div>
+
+</section>
+
+
+<footer>
+
+<strong>PHIRE</strong>
+
+<p>
+Preserving what time forgot.
+</p>
+
+<p>
+© 2026 PHIRE
+</p>
+
+</footer>
+
+
+<script>
+
+/* =========================
+LOADER
+========================= */
+
+window.addEventListener("load",()=>{
+
+setTimeout(()=>{
+document.getElementById("loader").classList.add("hide");
+},1200);
+
+});
+
+
+/* =========================
+THREE.JS 3D HERO
+========================= */
+
+const container =
+document.getElementById("three-container");
+
+const scene = new THREE.Scene();
+
+const camera =
+new THREE.PerspectiveCamera(
+60,
+window.innerWidth/window.innerHeight,
+.1,
+100
+);
+
+camera.position.z = 7;
+
+
+const renderer =
+new THREE.WebGLRenderer({
+antialias:true,
+alpha:true
+});
+
+renderer.setPixelRatio(
+Math.min(window.devicePixelRatio,2)
+);
+
+renderer.setSize(
+window.innerWidth,
+window.innerHeight
+);
+
+container.appendChild(renderer.domElement);
+
+
+/* 3D PHIRE object */
+
+const group = new THREE.Group();
+
+scene.add(group);
+
+
+/* Torus */
+
+const geometry =
+new THREE.TorusKnotGeometry(
+1.35,
+.28,
+180,
+32
+);
+
+const material =
+new THREE.MeshStandardMaterial({
+color:0x9b7560,
+metalness:.72,
+roughness:.18,
+transparent:true,
+opacity:.9
+});
+
+const knot =
+new THREE.Mesh(
+geometry,
+material
+);
+
+group.add(knot);
+
+
+/* Second wireframe layer */
+
+const wireGeometry =
+new THREE.IcosahedronGeometry(2.2,2);
+
+const wireMaterial =
+new THREE.MeshBasicMaterial({
+color:0xb89455,
+wireframe:true,
+transparent:true,
+opacity:.12
+});
+
+const wire =
+new THREE.Mesh(
+wireGeometry,
+wireMaterial
+);
+
+group.add(wire);
+
+
+/* Particles */
+
+const particleGeometry =
+new THREE.BufferGeometry();
+
+const particleCount = 900;
+
+const positions =
+new Float32Array(particleCount*3);
+
+for(let i=0;i<particleCount*3;i++){
+
+positions[i] =
+(Math.random()-.5)*18;
+
+}
+
+particleGeometry.setAttribute(
+"position",
+new THREE.BufferAttribute(
+positions,
+3
+)
+);
+
+const particleMaterial =
+new THREE.PointsMaterial({
+color:0xd8c4a2,
+size:.025,
+transparent:true,
+opacity:.65
+});
+
+const particles =
+new THREE.Points(
+particleGeometry,
+particleMaterial
+);
+
+scene.add(particles);
+
+
+/* Lights */
+
+const light1 =
+new THREE.PointLight(
+0xb89455,
+5,
+20
+);
+
+light1.position.set(
+3,
+4,
+5
+);
+
+scene.add(light1);
+
+
+const light2 =
+new THREE.PointLight(
+0x8f2d25,
+4,
+20
+);
+
+light2.position.set(
+-4,
+-2,
+3
+);
+
+scene.add(light2);
+
+
+/* Mouse movement */
+
+let mouseX=0;
+let mouseY=0;
+
+document.addEventListener(
+"mousemove",
+e=>{
+
+mouseX =
+(e.clientX/window.innerWidth-.5);
+
+mouseY =
+(e.clientY/window.innerHeight-.5);
+
+}
+);
+
+
+/* Animation */
+
+function animate(){
+
+requestAnimationFrame(animate);
+
+knot.rotation.x += .0025;
+knot.rotation.y += .004;
+
+wire.rotation.x -= .0008;
+wire.rotation.y += .0012;
+
+particles.rotation.y += .00018;
+
+group.rotation.y +=
+(mouseX*.35-group.rotation.y)*.025;
+
+group.rotation.x +=
+(-mouseY*.2-group.rotation.x)*.025;
+
+renderer.render(
+scene,
+camera
+);
+
+}
+
+animate();
+
+
+/* Resize */
+
+window.addEventListener(
+"resize",
+()=>{
+
+camera.aspect =
+window.innerWidth/window.innerHeight;
+
+camera.updateProjectionMatrix();
+
+renderer.setSize(
+window.innerWidth,
+window.innerHeight
+);
+
+}
+);
+
+
+/* =========================
+SCROLL REVEALS
+========================= */
+
+const reveals =
+document.querySelectorAll(".reveal");
+
+const observer =
+new IntersectionObserver(
+entries=>{
+
+entries.forEach(
+entry=>{
+
+if(entry.isIntersecting){
+
+entry.target
+.classList
+.add("visible");
+
+}
+
+}
+);
+
+},
+{
+threshold:.15
+}
+);
+
+reveals.forEach(
+element=>{
+observer.observe(element);
+}
+);
+
+
+/* =========================
+MANIFESTO WORD ANIMATION
+========================= */
+
+const words =
+document.querySelectorAll(".word");
+
+const wordObserver =
+new IntersectionObserver(
+entries=>{
+
+entries.forEach(
+entry=>{
+
+if(entry.isIntersecting){
+
+words.forEach(
+(word,index)=>{
+
+setTimeout(
+()=>{
+word.classList
+.add("show");
+},
+index*160
+);
+
+}
+);
+
+}
+
+}
+);
+
+},
+{
+threshold:.3
+}
+);
+
+wordObserver.observe(
+document.querySelector(".manifesto-big")
+);
+
+
+/* =========================
+CARD TILT
+========================= */
+
+document
+.querySelectorAll(".product-card")
+.forEach(card=>{
+
+card.addEventListener(
+"mousemove",
+e=>{
+
+const rect =
+card.getBoundingClientRect();
+
+const x =
+e.clientX-rect.left;
+
+const y =
+e.clientY-rect.top;
+
+const rotateY =
+((x/rect.width)-.5)*8;
+
+const rotateX =
+((y/rect.height)-.5)*-8;
+
+card.style.transform =
+`perspective(900px)
+rotateX(${rotateX}deg)
+rotateY(${rotateY}deg)
+translateY(-8px)`;
+
+}
+);
+
+card.addEventListener(
+"mouseleave",
+()=>{
+card.style.transform="";
+}
+);
+
+});
+
+
+/* =========================
+SMOOTH BUTTON
+========================= */
+
+document
+.querySelectorAll('a[href^="#"]')
+.forEach(link=>{
+
+link.addEventListener(
+"click",
+e=>{
+
+const target =
+document.querySelector(
+link.getAttribute("href")
+);
+
+if(target){
+
+e.preventDefault();
+
+target.scrollIntoView({
+behavior:"smooth"
+});
+
+}
+
+}
+);
+
+});
+
+</script>
+
+</body>
+</html>
